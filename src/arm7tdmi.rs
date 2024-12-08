@@ -2,8 +2,9 @@ const SP: u8 = 13;
 const LP: u8 = 14;
 const PC: u8 = 15;
 
-enum CpuStateMode
-{
+const MODE_BITS_MASK: u32 = 0x0000001F;
+
+enum CpuStateMode {
     ARM = 0,
     THUMB = 1
 }
@@ -16,6 +17,16 @@ enum OperationModes {
     Abort = 23,
     Undefined = 27,
     System = 31
+}
+
+enum CPSRBitsMask {
+    N = 0x80000000,
+    Z = 0x40000000,
+    C = 0x20000000,
+    V = 0x10000000,
+    I = 0x00000080,
+    F = 0x00000040,
+    T = 0x00000020
 }
 
 pub struct ARM7TDMI {
@@ -34,7 +45,7 @@ pub struct ARM7TDMI {
 
     pipeline: [u32; 2],
 
-    instructionCycles: u32
+    instruction_cycles: u32
 }
 
 impl ARM7TDMI {
@@ -53,7 +64,15 @@ impl ARM7TDMI {
             spsr_irq: 0u32,
             spsr_und: 0u32,
             pipeline: [0; 2],
-            instructionCycles: 0u32
+            instruction_cycles: 0u32
         }
+    }
+
+    fn set_cpsr_bit(&mut self, bit_mask: CPSRBitsMask) {
+        self.cpsr |= bit_mask as u32;
+    }
+
+    fn clear_cpsr_bit(&mut self, bit_mask: CPSRBitsMask) {
+        self.cpsr &= !(bit_mask as u32);
     }
 }
