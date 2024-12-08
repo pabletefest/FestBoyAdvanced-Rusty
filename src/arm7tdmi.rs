@@ -30,7 +30,11 @@ pub struct ARM7TDMI {
     spsr_svc: u32,
     spsr_abt: u32,
     spsr_irq: u32,
-    spsr_und: u32
+    spsr_und: u32,
+
+    pipeline: [u32; 2],
+
+    instructionCycles: u32
 }
 
 impl ARM7TDMI {
@@ -47,7 +51,9 @@ impl ARM7TDMI {
             spsr_svc: 0u32,
             spsr_abt: 0u32,
             spsr_irq: 0u32,
-            spsr_und: 0u32
+            spsr_und: 0u32,
+            pipeline: [0; 2],
+            opcodeCycles: 0u32
         }
     }
 }
