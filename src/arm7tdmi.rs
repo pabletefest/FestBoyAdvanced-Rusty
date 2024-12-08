@@ -53,7 +53,7 @@ impl ARM7TDMI {
             spsr_irq: 0u32,
             spsr_und: 0u32,
             pipeline: [0; 2],
-            opcodeCycles: 0u32
+            instructionCycles: 0u32
         }
     }
 }
