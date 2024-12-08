@@ -2,13 +2,20 @@ const SP: u8 = 13;
 const LP: u8 = 14;
 const PC: u8 = 15;
 
-enum CPUModes {
-    User,
-    FIQ,
-    IRQ,
-    Supervisor,
-    Abort,
-    System
+enum CpuStateMode
+{
+    ARM = 0,
+    THUMB = 1
+}
+
+enum OperationModes {
+    User = 16,
+    FIQ = 17,
+    IRQ = 18,
+    Supervisor = 19,
+    Abort = 23,
+    Undefined = 27,
+    System = 31
 }
 
 pub struct ARM7TDMI {
