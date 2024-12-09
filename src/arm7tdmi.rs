@@ -33,6 +33,7 @@ enum CPSRBitsMask {
     T = 0x00000020
 }
 
+#[derive(Clone, Copy)]
 enum ExceptionType {
     Reset,
     UndefinedInstruction,
@@ -58,6 +59,9 @@ pub struct ARM7TDMI {
     spsr_irq: u32,
     spsr_und: u32,
 
+    cpu_mode: CpuStateMode,
+    operation_mode: OperationModes,
+
     pipeline: [u32; 2],
 
     instruction_cycles: u32
@@ -79,6 +83,8 @@ impl ARM7TDMI {
             spsr_irq: 0u32,
             spsr_und: 0u32,
             pipeline: [0; 2],
+            cpu_mode: CpuStateMode::ARM,
+            operation_mode: OperationModes::User,
             instruction_cycles: 0u32
         }
     }
@@ -102,6 +108,7 @@ impl ARM7TDMI {
     fn enter_operation_mode(&mut self, mode: OperationModes) {
         
         self.cpsr = (self.cpsr & 0x0000001F) | mode as u32;
+        self.operation_mode = mode;
         
         match mode {
             OperationModes::User => {},
@@ -111,6 +118,41 @@ impl ARM7TDMI {
             OperationModes::Abort => {},
             OperationModes::Undefined => {},
             OperationModes::System => {} 
+        }
+    }
+
+    fn arise_exception(&mut self, exception: ExceptionType) {
+        
+        self.set_cpsr_bit(CPSRBitsMask::T);
+        self.cpu_mode = CpuStateMode::ARM;
+        
+        self.gpr[PC as usize] = EXCEPTIONS_HANDLERS_ADDRESSES[exception as usize];
+
+        match exception {
+            ExceptionType::Reset => {
+                self.enter_operation_mode(OperationModes::Supervisor);
+            },
+            ExceptionType::UndefinedInstruction => {
+                self.enter_operation_mode(OperationModes::Undefined);
+            },
+            ExceptionType::SoftwareInterrupt => {
+                self.enter_operation_mode(OperationModes::Supervisor);
+            },
+            ExceptionType::PrefetchAbort => {
+                self.enter_operation_mode(OperationModes::Abort);
+            },
+            ExceptionType::DataAbort => {
+                self.enter_operation_mode(OperationModes::Abort);
+            },
+            ExceptionType::AddressExceeds => {
+                self.enter_operation_mode(OperationModes::Supervisor);
+            },
+            ExceptionType::NormalInterrupt => {
+                self.enter_operation_mode(OperationModes::IRQ);
+            },
+            ExceptionType::FastInterrupt => {
+                self.enter_operation_mode(OperationModes::FIQ);
+            }
         }
     }
 }
