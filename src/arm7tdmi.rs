@@ -1,6 +1,6 @@
-const SP: u8 = 13;
-const LP: u8 = 14;
-const PC: u8 = 15;
+const SP: usize = 13;
+const LP: usize = 14;
+const PC: usize = 15;
 
 const MODE_BITS_MASK: u32 = 0x0000001F;
 
@@ -105,32 +105,41 @@ impl ARM7TDMI {
         self.cpsr &= !(bit_mask as u32);
     }
 
-    fn enter_operation_mode(&mut self, mode: OperationModes) {
-        
+    fn enter_operation_mode(&mut self, mode: OperationModes) {    
         self.cpsr = (self.cpsr & 0x0000001F) | mode as u32;
         self.operation_mode = mode;
         
         match mode {
             OperationModes::User => {},
-            OperationModes::FIQ => {},
-            OperationModes::IRQ => {},
-            OperationModes::Supervisor => {},
-            OperationModes::Abort => {},
-            OperationModes::Undefined => {},
+            OperationModes::FIQ => {
+                self.banked_fiq_regs[LP - 8] = self.gpr[PC];
+                self.spsr_fiq = self.cpsr;
+            },
+            OperationModes::IRQ => {
+                self.banked_irq_regs[1] = self.gpr[PC];
+                self.spsr_irq = self.cpsr;           
+            },
+            OperationModes::Supervisor => {
+                self.banked_svc_regs[1] = self.gpr[PC];
+                self.spsr_svc = self.cpsr;
+            },
+            OperationModes::Abort => {
+                self.banked_abt_regs[1] = self.gpr[PC];
+                self.spsr_abt = self.cpsr;
+            },
+            OperationModes::Undefined => {
+                self.banked_und_regs[1] = self.gpr[PC];
+                self.spsr_und = self.cpsr;
+            },
             OperationModes::System => {} 
         }
     }
 
     fn arise_exception(&mut self, exception: ExceptionType) {
-        
-        self.set_cpsr_bit(CPSRBitsMask::T);
-        self.cpu_mode = CpuStateMode::ARM;
-        
-        self.gpr[PC as usize] = EXCEPTIONS_HANDLERS_ADDRESSES[exception as usize];
-
         match exception {
             ExceptionType::Reset => {
                 self.enter_operation_mode(OperationModes::Supervisor);
+                self.set_cpsr_bit(CPSRBitsMask::F);
             },
             ExceptionType::UndefinedInstruction => {
                 self.enter_operation_mode(OperationModes::Undefined);
@@ -152,7 +161,15 @@ impl ARM7TDMI {
             },
             ExceptionType::FastInterrupt => {
                 self.enter_operation_mode(OperationModes::FIQ);
+                self.set_cpsr_bit(CPSRBitsMask::F);
             }
         }
+
+        self.set_cpsr_bit(CPSRBitsMask::T);
+        self.cpu_mode = CpuStateMode::ARM;
+
+        self.set_cpsr_bit(CPSRBitsMask::I);
+
+        self.gpr[PC] = EXCEPTIONS_HANDLERS_ADDRESSES[exception as usize];
     }
 }
