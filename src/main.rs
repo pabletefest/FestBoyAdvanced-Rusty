@@ -1,4 +1,5 @@
 pub mod arm7tdmi;
+pub mod system_memory;
 
 fn main() {
     println!("Hello, world!");

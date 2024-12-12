@@ -1,3 +1,5 @@
+use crate::system_memory::MemoryOperation;
+
 const SP: usize = 13;
 const LP: usize = 14;
 const PC: usize = 15;
@@ -171,5 +173,15 @@ impl ARM7TDMI {
         self.set_cpsr_bit(CPSRBitsMask::I);
 
         self.gpr[PC] = EXCEPTIONS_HANDLERS_ADDRESSES[exception as usize];
+    }
+}
+
+impl MemoryOperation for ARM7TDMI {
+    fn read8(&self, address: u32) -> u8 {
+        0
+    }
+
+    fn write8(&mut self, address: u32, value: u8) {
+        
     }
 }
