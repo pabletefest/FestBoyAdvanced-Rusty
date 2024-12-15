@@ -1,3 +1,8 @@
+const IWRAM_SIZE: usize = 32 * 1024;
+const EWRAM_SIZE: usize = 256 * 1024;
+const VRAM_SIZE: usize = 96 * 1024;
+const OAM_SIZE: usize = 1 * 1024;
+const PAL_RAM_SIZE: usize = 1 * 1024;
 pub trait MemoryOperation {
     fn read8(&self, address: u32) -> u8;
 
@@ -26,4 +31,12 @@ pub trait MemoryOperation {
         self.write16(address, value as u16 & 0xFFFFu16);
         self.write16(address.wrapping_add(2), (value >> 16) as u16 & 0xFFFFu16);
     }
+}
+
+pub struct SysMem {
+    iwram: [u8; IWRAM_SIZE],
+    ewram: [u8; EWRAM_SIZE],
+    vram: [u8; VRAM_SIZE],
+    oam: [u8; OAM_SIZE],
+    pal_ram: [u8; PAL_RAM_SIZE]
 }
