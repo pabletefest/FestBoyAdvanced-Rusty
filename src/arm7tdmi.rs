@@ -91,6 +91,14 @@ impl ARM7TDMI {
         }
     }
 
+    fn pc(&self) -> u32 {
+       self.gpr[PC]
+    }
+
+    fn pc_mut(&mut self, value: u32) {
+        self.gpr[PC] = value;
+    }
+
     fn reset(&mut self) {
 
     }
@@ -101,10 +109,10 @@ impl ARM7TDMI {
 
     fn increment_pc(&mut self) {
         if self.cpu_mode == CpuStateMode::ARM {
-            self.gpr[PC] += 4;
+            self.gpr[PC] = self.gpr[PC].wrapping_add(4);
         }
         else {
-            self.gpr[PC] += 2;
+            self.gpr[PC] = self.gpr[PC].wrapping_add(2);
         }
     }
 
@@ -186,11 +194,32 @@ impl ARM7TDMI {
 }
 
 impl MemoryOperation for ARM7TDMI {
-    fn read8(&self, address: u32) -> u8 {
+    fn read8(&self, address: usize) -> u8 {
         0
     }
 
-    fn write8(&mut self, address: u32, value: u8) {
+    fn write8(&mut self, address: usize, value: u8) {
 
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pc_increments_work_and_wraps() {
+        let mut cpu = ARM7TDMI::new();
+        let mut expected_pc = 4;
+
+        cpu.increment_pc();
+
+        assert_eq!(cpu.pc(), expected_pc);
+
+        expected_pc = 3;
+        cpu.pc_mut(0xFFFFFFFF);
+        cpu.increment_pc();
+
+        assert_eq!(cpu.pc(), expected_pc);
     }
 }
