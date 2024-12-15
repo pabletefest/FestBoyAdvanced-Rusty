@@ -8,7 +8,7 @@ const MODE_BITS_MASK: u32 = 0x0000001F;
 
 const EXCEPTIONS_HANDLERS_ADDRESSES: [u32; 8] = [0x00000000, 0x00000004, 0x00000008, 0x0000000C, 0x00000010, 0x00000014, 0x00000018, 0x0000001C];
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum CpuStateMode {
     ARM = 0,
     THUMB = 1
@@ -99,6 +99,15 @@ impl ARM7TDMI {
         0
     }
 
+    fn increment_pc(&mut self) {
+        if self.cpu_mode == CpuStateMode::ARM {
+            self.gpr[PC] += 4;
+        }
+        else {
+            self.gpr[PC] += 2;
+        }
+    }
+
     fn set_cpsr_bit(&mut self, bit_mask: CPSRBitsMask) {
         self.cpsr |= bit_mask as u32;
     }
@@ -182,6 +191,6 @@ impl MemoryOperation for ARM7TDMI {
     }
 
     fn write8(&mut self, address: u32, value: u8) {
-        
+
     }
 }
