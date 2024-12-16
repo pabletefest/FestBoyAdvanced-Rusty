@@ -1,8 +1,19 @@
+use std::{collections::btree_map::Range, ops::RangeInclusive};
+
 const IWRAM_SIZE: usize = 32 * 1024;
 const EWRAM_SIZE: usize = 256 * 1024;
 const VRAM_SIZE: usize = 96 * 1024;
 const OAM_SIZE: usize = 1 * 1024;
 const PAL_RAM_SIZE: usize = 1 * 1024;
+
+const BIOS_AREA: RangeInclusive<usize> = 0x0000000..=0x0000_3FFF;
+const EWRAM_AREA: RangeInclusive<usize> = 0x0200_0000..=0x0203_FFFF;
+const IWRAM_AREA: RangeInclusive<usize> = 0x0300_0000..=0x0300_7FFF;
+const IOREGS_AREA: RangeInclusive<usize> = 0x0400_0000..=0x0400_03FF;
+const PAL_AREA: RangeInclusive<usize> = 0x0500_0000..=0x0500_03FF;
+const VRAM_AREA: RangeInclusive<usize> = 0x0600_0000..=0x0601_7FFF;
+const OAM_AREA: RangeInclusive<usize> = 0x0700_0000..=0x0700_03FF;
+
 pub trait MemoryOperation {
     fn read8(&self, address: usize) -> u8;
 
@@ -41,21 +52,33 @@ pub struct SysMem {
     pal_ram: [u8; PAL_RAM_SIZE]
 }
 
+impl SysMem {
+    pub fn new() -> Self {
+        SysMem {
+            iwram: [0; IWRAM_SIZE],
+            ewram: [0; EWRAM_SIZE],
+            vram: [0; VRAM_SIZE],
+            oam: [0; OAM_SIZE],
+            pal_ram: [0; PAL_RAM_SIZE]
+        }
+    }
+}
+
 impl MemoryOperation for SysMem {
     fn read8(&self, address: usize) -> u8 {
-        if address <= 0x0000_3FFF {
+        if BIOS_AREA.contains(&address) {
             0
-        } else if address >= 0x0200_0000 && address <= 0x0203_FFFF{
+        } else if EWRAM_AREA.contains(&address) {
             self.ewram[address & 0x3FFFF]
-        } else if address >= 0x0300_0000 && address <= 0x0300_7FFF {
+        } else if IWRAM_AREA.contains(&address) {
             self.iwram[address & 0x7FFF]
-        } else if address >= 0x0400_0000 && address <= 0x0400_03FF {
+        } else if IOREGS_AREA.contains(&address) {
             0
-        } else if address >= 0x0500_0000 && address <= 0x0500_03FF {
+        } else if PAL_AREA.contains(&address) {
             self.pal_ram[address & 0x3FF]
-        } else if address >= 0x0600_0000 && address <= 0x0601_7FFF {
+        } else if VRAM_AREA.contains(&address) {
             self.vram[address & 0x17FFF]
-        } else if address >= 0x0700_0000 && address <= 0x0700_03FF {
+        } else if OAM_AREA.contains(&address) {
             self.oam[address & 0x3FF]
         }
         else {
@@ -64,19 +87,19 @@ impl MemoryOperation for SysMem {
     }
 
     fn write8(&mut self, address: usize, value: u8) {
-        if address <= 0x0000_3FFF {
+        if BIOS_AREA.contains(&address) {
             
-        } else if address >= 0x0200_0000 && address <= 0x0203_FFFF{
+        } else if EWRAM_AREA.contains(&address) {
             self.ewram[address & 0x3FFFF] = value;
-        } else if address >= 0x0300_0000 && address <= 0x0300_7FFF {
+        } else if IWRAM_AREA.contains(&address) {
             self.iwram[address & 0x7FFF] = value;
-        } else if address >= 0x0400_0000 && address <= 0x0400_03FF {
+        } else if IOREGS_AREA.contains(&address) {
             
-        } else if address >= 0x0500_0000 && address <= 0x0500_03FF {
+        } else if PAL_AREA.contains(&address) {
             self.pal_ram[address & 0x3FF] = value;
-        } else if address >= 0x0600_0000 && address <= 0x0601_7FFF {
+        } else if VRAM_AREA.contains(&address) {
             self.vram[address & 0x17FFF] = value;
-        } else if address >= 0x0700_0000 && address <= 0x0700_03FF {
+        } else if OAM_AREA.contains(&address) {
             self.oam[address & 0x3FF] = value;
         }
         else {
