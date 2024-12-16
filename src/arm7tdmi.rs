@@ -1,4 +1,4 @@
-use crate::system_memory::MemoryOperation;
+use crate::system_memory::{MemoryOperation, SysMem};
 
 const SP: usize = 13;
 const LP: usize = 14;
@@ -103,7 +103,7 @@ impl ARM7TDMI {
 
     }
 
-    fn run_instruction(&mut self) -> u8 {
+    pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
         0
     }
 
