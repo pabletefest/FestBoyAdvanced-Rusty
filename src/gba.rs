@@ -1,18 +1,20 @@
 use crate::arm7tdmi::ARM7TDMI;
 use crate::system_memory::SysMem;
 
+use std::boxed::Box;
+
 const CYCLES_PER_FRAME: u32 = 280_896;
 
 pub struct GBA {
-    sys_mem: SysMem,
-    cpu: ARM7TDMI
+    sys_mem: Box<SysMem>,
+    cpu: Box<ARM7TDMI>
 }
 
 impl GBA {
     pub fn new() -> GBA {
         GBA {
-            sys_mem: SysMem::new(),
-            cpu: ARM7TDMI::new()
+            sys_mem: Box::new(SysMem::new()),
+            cpu: Box::new(ARM7TDMI::new())
         }
     }
 
