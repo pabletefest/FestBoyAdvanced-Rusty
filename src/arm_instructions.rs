@@ -1,5 +1,6 @@
 use super::arm7tdmi::ARM7TDMI;
 
+#[inline]
 pub fn decode_arm_opcode_bits(instruction: u32) -> u16 {
     ((instruction >> 16) as u16 & 0x0FF0) | ((instruction >> 4) as u16 & 0xF)
 }
