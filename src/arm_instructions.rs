@@ -16,8 +16,8 @@ pub fn decode_dataproc_opcode(instruction: u32) -> u8 {
 }
 
 #[inline]
-pub fn decode_I_bit(instruction: u32) -> u8 {
-    ((instruction >> 25) & 1) as u8
+pub fn is_dataproc_immediate(instruction: u32) -> bool {
+    ((instruction >> 25) & 1) == 1
 }
 
 impl ARM7TDMI {
