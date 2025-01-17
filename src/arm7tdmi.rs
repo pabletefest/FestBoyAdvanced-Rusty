@@ -64,7 +64,7 @@ pub struct ARM7TDMI {
     cpu_mode: CpuStateMode,
     operation_mode: OperationModes,
 
-    pipeline: [u32; 2],
+    pipeline: [Option<u32>; 2],
 
     instruction_cycles: u32
 }
@@ -84,11 +84,31 @@ impl ARM7TDMI {
             spsr_abt: 0u32,
             spsr_irq: 0u32,
             spsr_und: 0u32,
-            pipeline: [0; 2],
+            pipeline: [None; 2],
             cpu_mode: CpuStateMode::ARM,
             operation_mode: OperationModes::User,
             instruction_cycles: 0u32
         }
+    }
+    
+    fn reset(&mut self) {
+
+    }
+
+    fn fetch_opcode(&self, sys_mem: &mut SysMem) -> u32 {
+        0
+    }
+
+    fn decode_opcode(&self) {
+
+    }
+
+    fn execute_opcode(&mut self) {
+
+    }
+
+    pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
+        0
     }
 
     fn pc(&self) -> u32 {
@@ -97,14 +117,6 @@ impl ARM7TDMI {
 
     fn pc_mut(&mut self, value: u32) {
         self.gpr[PC] = value;
-    }
-
-    fn reset(&mut self) {
-
-    }
-
-    pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
-        0
     }
 
     fn increment_pc(&mut self) {
@@ -193,15 +205,15 @@ impl ARM7TDMI {
     }
 }
 
-impl MemoryOperation for ARM7TDMI {
-    fn read8(&self, address: usize) -> u8 {
-        0
-    }
+// impl MemoryOperation for ARM7TDMI {
+//     fn read8(&self, address: usize) -> u8 {
+        
+//     }
 
-    fn write8(&mut self, address: usize, value: u8) {
+//     fn write8(&mut self, address: usize, value: u8) {
 
-    }
-}
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
