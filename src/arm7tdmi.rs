@@ -99,13 +99,13 @@ impl ARM7TDMI {
         0
     }
 
-    fn decode_opcode(&self) {
+    fn decode_and_execute_opcode(&mut self) {
 
     }
 
-    fn execute_opcode(&mut self) {
+    // fn execute_opcode(&mut self) {
 
-    }
+    // }
 
     pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
         0
