@@ -1,4 +1,4 @@
-use std::{collections::btree_map::Range, ops::RangeInclusive};
+use std::ops::RangeInclusive;
 
 const IWRAM_SIZE: usize = 32 * 1024;
 const EWRAM_SIZE: usize = 256 * 1024;

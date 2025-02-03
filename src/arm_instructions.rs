@@ -1,3 +1,5 @@
+use crate::system_memory::SysMem;
+
 use super::arm7tdmi::ARM7TDMI;
 
 // enum ARMInstructionType {
@@ -212,11 +214,11 @@ pub fn is_swi_inst(instruction: u32) -> bool {
     return (decode_opcode_format_bits(instruction) & SWI_MASK) == SWI_FORMAT;
 }
 
-pub fn nop(_: u32) {
+pub fn nop(_: u32, _: &mut SysMem) {
 }
 
 impl ARM7TDMI {
-    pub fn decode_arm_instruction(instruction: u32) -> fn(u32) {
+    pub fn decode_arm_instruction(&self, instruction: u32) -> fn(u32, &mut SysMem) {
         // Decoding order of instructions
 
         if is_mul_mla_inst(instruction) {
@@ -305,6 +307,90 @@ impl ARM7TDMI {
 
         // Default
         nop
+    }
+
+    fn mul_mla(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn mull_mlal(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn swap(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn ldrh_strh(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn ldrsb_ldrsh(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn mrs(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn msr_reg(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn msr_imm(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn bx(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn dataproc_imm_shift(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn dataproc_reg_shift(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn undef_dataproc(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn dataproc_imm_value(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn ldr_str_imm_offset(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn ldr_str_reg_offset(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn ldm_stm(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn b_bl(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn stc_ldc(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn cdp(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn mcr_mrc(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
+    }
+
+    fn swi(&mut self, instruction: u32, sys_mem: &mut SysMem) {
+
     }
 }
 

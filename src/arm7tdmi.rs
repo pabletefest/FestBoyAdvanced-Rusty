@@ -1,4 +1,4 @@
-use crate::system_memory::{MemoryOperation, SysMem};
+use crate::{arm_instructions::decode_cond_bits, system_memory::{MemoryOperation, SysMem}};
 
 const SP: usize = 13;
 const LP: usize = 14;
@@ -95,19 +95,26 @@ impl ARM7TDMI {
 
     }
 
-    fn fetch_opcode(&self, sys_mem: &mut SysMem) -> u32 {
-        0
-    }
+    fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8{
+        let opcode: u32;
 
-    fn decode_and_execute_opcode(&mut self) {
+        if self.cpu_mode == CpuStateMode::ARM {
+            opcode = sys_mem.read32(self.pc() as usize);
+            self.increment_pc();
 
-    }
+            if decode_cond_bits(opcode) > 0 { // Execute this instruction
+                let instruction_ptr = self.decode_arm_instruction(opcode);
+                instruction_ptr(opcode, sys_mem);
+            }
+        }
+        else {
+            opcode = sys_mem.read16(self.pc() as usize) as u32;
+            self.increment_pc();
 
-    // fn execute_opcode(&mut self) {
+            // TODO: Thumb Mode
+        }
 
-    // }
-
-    pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
+        // TODO: Return cycles needed for the executed instruction
         0
     }
 
