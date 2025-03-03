@@ -49,6 +49,7 @@ enum ExceptionType {
 
 pub struct ARM7TDMI {
     gpr: [u32; 16],
+    banked_user_sys_regs: [u32; 16],
     banked_fiq_regs: [u32; 7],
     banked_svc_regs: [u32; 2],
     banked_abt_regs: [u32; 2],
@@ -64,7 +65,7 @@ pub struct ARM7TDMI {
     cpu_mode: CpuStateMode,
     operation_mode: OperationModes,
 
-    pipeline: [Option<u32>; 2],
+    pipeline: [Option<u32>; 3],
 
     instruction_cycles: u32
 }
@@ -73,6 +74,7 @@ impl ARM7TDMI {
     pub fn new() -> Self {
         ARM7TDMI {
             gpr: [0; 16],
+            banked_user_sys_regs: [0; 16],
             banked_fiq_regs: [0; 7],
             banked_svc_regs: [0; 2],
             banked_abt_regs: [0; 2],
@@ -84,7 +86,7 @@ impl ARM7TDMI {
             spsr_abt: 0u32,
             spsr_irq: 0u32,
             spsr_und: 0u32,
-            pipeline: [None; 2],
+            pipeline: [None; 3],
             cpu_mode: CpuStateMode::ARM,
             operation_mode: OperationModes::User,
             instruction_cycles: 0u32
@@ -106,12 +108,14 @@ impl ARM7TDMI {
         }
     }
 
-    fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8{
+    fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
         let opcode: u32 = self.pipeline[0].unwrap();
         self.pipeline.rotate_left(1);
 
         if self.cpu_mode == CpuStateMode::ARM {
             self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
+            self.increment_pc();
+            self.pipeline[2] = Some(sys_mem.read32(self.pc() as usize));
             self.increment_pc();
 
             if decode_cond_bits(opcode) > 0 { // Execute this instruction
@@ -121,6 +125,8 @@ impl ARM7TDMI {
         }
         else {
             self.pipeline[1] = Some(sys_mem.read16(self.pc() as usize) as u32);
+            self.increment_pc();
+            self.pipeline[2] = Some(sys_mem.read16(self.pc() as usize) as u32);
             self.increment_pc();
 
             // TODO: Thumb Mode
