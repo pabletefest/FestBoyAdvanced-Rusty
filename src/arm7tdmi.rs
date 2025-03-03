@@ -108,6 +108,25 @@ impl ARM7TDMI {
         }
     }
 
+    fn flush_pipeline(&mut self, sys_mem: &mut SysMem) {
+        if self.cpu_mode == CpuStateMode::ARM {
+            self.pipeline[0] = Some(sys_mem.read32(self.pc() as usize));
+            self.increment_pc();
+            self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
+            self.increment_pc();
+            self.pipeline[2] = Some(sys_mem.read32(self.pc() as usize));
+            self.increment_pc(); 
+        }
+        else {
+            self.pipeline[0] = Some(sys_mem.read16(self.pc() as usize) as u32);
+            self.increment_pc();
+            self.pipeline[1] = Some(sys_mem.read16(self.pc() as usize) as u32);
+            self.increment_pc();
+            self.pipeline[2] = Some(sys_mem.read16(self.pc() as usize) as u32);
+            self.increment_pc();
+        }
+    }
+
     fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
         let opcode: u32 = self.pipeline[0].unwrap();
         self.pipeline.rotate_left(1);
