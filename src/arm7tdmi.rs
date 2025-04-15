@@ -127,7 +127,7 @@ impl ARM7TDMI {
         }
     }
 
-    fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
+    pub fn run_instruction(&mut self, sys_mem: &mut SysMem) -> u8 {
         let opcode: u32 = self.pipeline[0].unwrap();
         self.pipeline.rotate_left(1);
 
