@@ -65,7 +65,7 @@ pub struct ARM7TDMI {
     cpu_mode: CpuStateMode,
     operation_mode: OperationModes,
 
-    pipeline: [Option<u32>; 3],
+    pipeline: [Option<u32>; 2],
 
     instruction_cycles: u32
 }
@@ -86,26 +86,15 @@ impl ARM7TDMI {
             spsr_abt: 0u32,
             spsr_irq: 0u32,
             spsr_und: 0u32,
-            pipeline: [None; 3],
+            pipeline: [None; 2],
             cpu_mode: CpuStateMode::ARM,
             operation_mode: OperationModes::User,
             instruction_cycles: 0u32
         }
     }
     
-    fn reset(&mut self, sys_mem: &mut SysMem) {
-        if self.cpu_mode == CpuStateMode::ARM {
-            self.pipeline[0] = Some(sys_mem.read32(self.pc() as usize));
-            self.increment_pc();
-            self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
-            self.increment_pc();
-        }
-        else {
-            self.pipeline[0] = Some(sys_mem.read16(self.pc() as usize) as u32);
-            self.increment_pc();
-            self.pipeline[1] = Some(sys_mem.read16(self.pc() as usize) as u32);
-            self.increment_pc();
-        }
+    pub fn reset(&mut self, sys_mem: &mut SysMem) {
+        self.flush_pipeline(sys_mem);
     }
 
     fn flush_pipeline(&mut self, sys_mem: &mut SysMem) {
@@ -114,15 +103,11 @@ impl ARM7TDMI {
             self.increment_pc();
             self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
             self.increment_pc();
-            self.pipeline[2] = Some(sys_mem.read32(self.pc() as usize));
-            self.increment_pc(); 
         }
         else {
             self.pipeline[0] = Some(sys_mem.read16(self.pc() as usize) as u32);
             self.increment_pc();
             self.pipeline[1] = Some(sys_mem.read16(self.pc() as usize) as u32);
-            self.increment_pc();
-            self.pipeline[2] = Some(sys_mem.read16(self.pc() as usize) as u32);
             self.increment_pc();
         }
     }
@@ -134,8 +119,6 @@ impl ARM7TDMI {
         if self.cpu_mode == CpuStateMode::ARM {
             self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
             self.increment_pc();
-            self.pipeline[2] = Some(sys_mem.read32(self.pc() as usize));
-            self.increment_pc();
 
             if decode_cond_bits(opcode) > 0 { // Execute this instruction
                 let instruction_ptr = self.decode_arm_instruction(opcode);
@@ -144,8 +127,6 @@ impl ARM7TDMI {
         }
         else {
             self.pipeline[1] = Some(sys_mem.read16(self.pc() as usize) as u32);
-            self.increment_pc();
-            self.pipeline[2] = Some(sys_mem.read16(self.pc() as usize) as u32);
             self.increment_pc();
 
             // TODO: Thumb Mode
