@@ -1,4 +1,4 @@
-use crate::{arm_instructions::decode_cond_bits, system_memory::{MemoryOperation, SysMem}};
+use crate::{arm_instructions::arm_decode_cond_bits, system_memory::{MemoryOperation, SysMem}};
 
 const SP: usize = 13;
 const LP: usize = 14;
@@ -120,7 +120,7 @@ impl ARM7TDMI {
             self.pipeline[1] = Some(sys_mem.read32(self.pc() as usize));
             self.increment_pc();
 
-            if decode_cond_bits(opcode) > 0 { // Execute this instruction
+            if arm_decode_cond_bits(opcode) > 0 { // Execute this instruction
                 let instruction_ptr = self.decode_arm_instruction(opcode);
                 instruction_ptr(opcode, sys_mem);
             }
@@ -162,7 +162,10 @@ impl ARM7TDMI {
     }
 
     fn enter_operation_mode(&mut self, mode: OperationModes) {    
-        self.cpsr = (self.cpsr & 0x0000001F) | mode as u32;
+        let prevMode = self.operation_mode;
+        
+        // self.cpsr = (self.cpsr & 0x0000001F) | mode as u32;
+        self.cpsr = (self.cpsr & 0xFFFFFFE0) | mode as u32;
         self.operation_mode = mode;
         
         match mode {
