@@ -173,6 +173,10 @@ impl ARM7TDMI {
         self.cpsr &= !(bit_mask as u32);
     }
 
+    fn get_cpsr_bit(self, bit_mask: CPSRBitsMask) -> bool {
+        (self.cpsr & bit_mask as u32) > 0 
+    }
+
     fn enter_operation_mode(&mut self, new_mode: OperationModes) {    
         let prev_mode = self.operation_mode;
         
