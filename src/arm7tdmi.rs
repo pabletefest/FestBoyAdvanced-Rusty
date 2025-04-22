@@ -1,7 +1,7 @@
 use crate::{arm_instructions::arm_decode_cond_bits, system_memory::{MemoryOperation, SysMem}};
 
 const SP: usize = 13;
-const LP: usize = 14;
+const LR: usize = 14;
 const PC: usize = 15;
 
 const MODE_BITS_MASK: u32 = 0x0000001F;
@@ -47,6 +47,16 @@ enum ExceptionType {
     FastInterrupt
 }
 
+// #[derive(Clone, Copy)]
+// enum RegsBank {
+//     BankUsrSys = 0,
+//     BankFiq = 1,
+//     BankIrq = 2,
+//     BankSvs = 3,
+//     BankAbt = 4,
+//     BankUnd = 5
+// }
+
 pub struct ARM7TDMI {
     gpr: [u32; 16],
     banked_user_sys_regs: [u32; 16],
@@ -56,6 +66,7 @@ pub struct ARM7TDMI {
     banked_irq_regs: [u32; 2],
     banked_und_regs: [u32; 2],
     cpsr: u32,
+    spsr_user_sys: u32,
     spsr_fiq: u32,
     spsr_svc: u32,
     spsr_abt: u32,
@@ -81,6 +92,7 @@ impl ARM7TDMI {
             banked_irq_regs: [0; 2],
             banked_und_regs: [0; 2],
             cpsr: 0u32,
+            spsr_user_sys: 0u32,
             spsr_fiq: 0u32,
             spsr_svc: 0u32,
             spsr_abt: 0u32,
@@ -161,36 +173,71 @@ impl ARM7TDMI {
         self.cpsr &= !(bit_mask as u32);
     }
 
-    fn enter_operation_mode(&mut self, mode: OperationModes) {    
-        let prevMode = self.operation_mode;
+    fn enter_operation_mode(&mut self, new_mode: OperationModes) {    
+        let prev_mode = self.operation_mode;
         
         // self.cpsr = (self.cpsr & 0x0000001F) | mode as u32;
-        self.cpsr = (self.cpsr & 0xFFFFFFE0) | mode as u32;
-        self.operation_mode = mode;
+        self.cpsr = (self.cpsr & 0xFFFFFFE0) | new_mode as u32;
+        self.operation_mode = new_mode;
         
-        match mode {
-            OperationModes::User => {},
+        match prev_mode {
+            // OperationModes::User => {},
             OperationModes::FIQ => {
-                self.banked_fiq_regs[LP - 8] = self.gpr[PC];
                 self.spsr_fiq = self.cpsr;
+                self.banked_fiq_regs.copy_from_slice(&self.gpr[8..PC]);
             },
             OperationModes::IRQ => {
-                self.banked_irq_regs[1] = self.gpr[PC];
-                self.spsr_irq = self.cpsr;           
+                self.spsr_irq = self.cpsr;      
+                self.banked_irq_regs.copy_from_slice(&self.gpr[SP..PC]);     
             },
             OperationModes::Supervisor => {
-                self.banked_svc_regs[1] = self.gpr[PC];
                 self.spsr_svc = self.cpsr;
+                self.banked_svc_regs.copy_from_slice(&self.gpr[SP..PC]);     
             },
             OperationModes::Abort => {
-                self.banked_abt_regs[1] = self.gpr[PC];
                 self.spsr_abt = self.cpsr;
+                self.banked_abt_regs.copy_from_slice(&self.gpr[SP..PC]);     
             },
             OperationModes::Undefined => {
-                self.banked_und_regs[1] = self.gpr[PC];
                 self.spsr_und = self.cpsr;
+                self.banked_und_regs.copy_from_slice(&self.gpr[SP..PC]);     
             },
-            OperationModes::System => {} 
+            // OperationModes::System => {} 
+            _ => {
+                self.spsr_user_sys = self.cpsr;
+                self.banked_user_sys_regs.copy_from_slice(&self.gpr);     
+            }
+        }
+
+        self.gpr[LR] = self.gpr[PC]; // Copy prev. mode PC reg into LR reg for new mode (generic regs)
+
+        match new_mode {
+            // OperationModes::User => {},
+            OperationModes::FIQ => {
+                // self.banked_fiq_regs[LR - 8] = self.gpr[PC];
+                self.gpr[8..PC].copy_from_slice(&self.banked_fiq_regs);
+            },
+            OperationModes::IRQ => {
+                // self.banked_irq_regs[1] = self.gpr[PC];
+                self.gpr[SP..PC].copy_from_slice(&self.banked_irq_regs);
+            },
+            OperationModes::Supervisor => {
+                // self.banked_svc_regs[1] = self.gpr[PC];
+                self.gpr[SP..PC].copy_from_slice(&self.banked_svc_regs);
+            },
+            OperationModes::Abort => {
+                // self.banked_abt_regs[1] = self.gpr[PC];
+                self.gpr[SP..PC].copy_from_slice(&self.banked_abt_regs);
+            },
+            OperationModes::Undefined => {
+                // self.banked_und_regs[1] = self.gpr[PC];
+                self.gpr[SP..PC].copy_from_slice(&self.banked_und_regs);
+            },
+            // OperationModes::System => {}
+            _ => {
+                // self.banked_user_sys_regs[LR] = self.gpr[PC];
+                self.gpr.copy_from_slice(&self.banked_user_sys_regs);
+            }
         }
     }
 
